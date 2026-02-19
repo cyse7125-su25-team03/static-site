@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    extensions: [
+                        [$class: 'CloneOption', noTags: false, shallow: false]
+                    ],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('Validate Conventional Commits') {
+            steps {
+                script {
+                    // Get all commits in the PR (commits between target branch and PR head)
+                    def commits = sh(
+                        script: "git log origin/main..HEAD --pretty=format:'%s'",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!commits) {
+                        echo "No commits found to validate."
+                        return
+                    }
+
+                    // Conventional commit pattern
+                    // type(optional scope): description
+                    def pattern = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?:\s.+$/
+
+                    def failed = false
+                    def failedCommits = []
+
+                    commits.split('\n').each { msg ->
+                        msg = msg.trim()
+                        if (msg && !(msg ==~ pattern)) {
+                            failed = true
+                            failedCommits.add(msg)
+                        }
+                    }
+
+                    if (failed) {
+                        def errorMsg = "The following commits do not follow Conventional Commits specification:\n"
+                        failedCommits.each { errorMsg += "  - ${it}\n" }
+                        errorMsg += "\nExpected format: type(scope): description"
+                        errorMsg += "\nValid types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+                        error(errorMsg)
+                    }
+
+                    echo "All commits follow Conventional Commits specification."
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'PR check passed - all commits are conventional.'
+        }
+        failure {
+            echo 'PR check failed - fix commit messages to follow Conventional Commits.'
+        }
+    }
+}
