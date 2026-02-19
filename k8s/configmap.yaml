@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: static-site-config
+  labels:
+    app: static-site
+data:
+  CADDY_PORT: "8080"

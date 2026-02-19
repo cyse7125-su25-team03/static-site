@@ -1,0 +1,14 @@
+:8080 {
+    root * /srv
+    file_server
+
+    # Health check endpoint for liveness and readiness probes
+    handle /healthz {
+        respond "OK" 200
+    }
+
+    # Readiness probe endpoint
+    handle /readyz {
+        respond "Ready" 200
+    }
+}
