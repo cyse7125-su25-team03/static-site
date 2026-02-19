@@ -19,18 +19,13 @@ pipeline {
             }
         }
 
-        stage('Determine Version') {
+        stage('Determine Next Version') {
             steps {
                 script {
-                    // Get the latest git tag, default to 0.0.0 if none exists
-                    def latestTag = sh(
-                        script: "git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0'",
-                        returnStdout: true
-                    ).trim()
-
-                    // Remove 'v' prefix if present (v1.0.0 -> 1.0.0)
-                    env.IMAGE_TAG = latestTag.replaceFirst('^v', '')
-                    echo "Building version: ${env.IMAGE_TAG}"
+                    // Use Conventional Commits plugin to calculate next version
+                    def nextVersion = nextVersion()
+                    env.IMAGE_TAG = nextVersion.toString()
+                    echo "Next version determined by Conventional Commits plugin: ${env.IMAGE_TAG}"
                 }
             }
         }
@@ -61,6 +56,17 @@ pipeline {
                         -t ${DOCKERHUB_CREDENTIALS_USR}/static-site:latest \
                         --push \
                         .
+                """
+            }
+        }
+
+        stage('Tag Release') {
+            steps {
+                sh """
+                    git config user.email "mavureddysenthilve.m@northeastern.edu"
+                    git config user.name "Manikhandan3"
+                    git tag -a v${IMAGE_TAG} -m "Release v${IMAGE_TAG}"
+                    git push origin v${IMAGE_TAG}
                 """
             }
         }
