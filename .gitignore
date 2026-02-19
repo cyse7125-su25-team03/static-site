@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes secrets (never commit)
+k8s/secret.yaml
+
+# Environment files
+.env
+*.env
+
+# Logs
+*.log
