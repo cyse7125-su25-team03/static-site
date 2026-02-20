@@ -62,12 +62,14 @@ pipeline {
 
         stage('Tag Release') {
             steps {
-                sh """
-                    git config user.email "mavureddysenthilve.m@northeastern.edu"
-                    git config user.name "Manikhandan3"
-                    git tag -a v${IMAGE_TAG} -m "Release v${IMAGE_TAG}"
-                    git push origin v${IMAGE_TAG}
-                """
+                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh """
+                        git config user.email "jenkins@manikhandan.me"
+                        git config user.name "Jenkins CI"
+                        git tag -a ${IMAGE_TAG} -m "Release ${IMAGE_TAG}"
+                        git push https://${GIT_USER}:${GIT_TOKEN}@github.com/cyse7125-su25-team03/static-site.git ${IMAGE_TAG}
+                    """
+                }
             }
         }
     }
