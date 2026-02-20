@@ -65,7 +65,7 @@ pipeline {
                 sh """
                     git config user.email "mavureddysenthilve.m@northeastern.edu"
                     git config user.name "Manikhandan3"
-                    git tag -a v${IMAGE_TAG} -m "Release v${IMAGE_TAG}"
+                    git tag -a ${IMAGE_TAG} -m "Release v${IMAGE_TAG}"
                     git push origin v${IMAGE_TAG}
                 """
             }
